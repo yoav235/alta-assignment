@@ -25,84 +25,113 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     try {
-      // Mock login until backend is ready
-      // const response = await apiLogin(credentials);
+      console.log('🔐 Attempting login with:', { email: credentials.email });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await apiLogin(credentials);
       
-      // Mock successful login
+      console.log('✅ Login successful! Response:', response);
+      
+      // Store user data
       const userData = {
-        id: 'user-' + Date.now(),
-        name: credentials.email.split('@')[0], // Use email username as name
-        email: credentials.email,
-        role: 'sam',
+        id: response.user?.id || response.id,
+        name: response.user?.name || credentials.email.split('@')[0],
+        email: response.user?.email || credentials.email,
+        role: response.user?.role || 'sam',
       };
       
-      // Store mock token
-      localStorage.setItem('authToken', 'mock-token-' + Date.now());
+      console.log('👤 User data stored:', userData);
       
       setUser(userData);
       localStorage.setItem('userData', JSON.stringify(userData));
       
       return { success: true, user: userData };
     } catch (error) {
+      console.error('❌ Login failed:', error);
       return { success: false, error: error.message || 'Login failed' };
     }
   };
 
-  const loginWithGoogle = async (googleResponse) => {
+  const handleOAuthCallback = (token) => {
     try {
-      // For now, mock the Google login until backend is ready
-      // This would normally send the Google token to your backend
-      // const response = await fetch(`${API_URL}/auth/google`, {
-      //   method: 'POST',
-      //   body: JSON.stringify({ token: googleResponse.credential })
-      // });
+      console.log('🔐 Processing OAuth callback with token');
       
-      // Mock user data from Google response
+      // Store the token
+      localStorage.setItem('authToken', token);
+      
+      // Fetch user data from backend
+      fetchCurrentUser();
+      
+      return { success: true };
+    } catch (error) {
+      console.error('❌ OAuth callback failed:', error);
+      return { success: false, error: error.message || 'OAuth callback failed' };
+    }
+  };
+
+  const fetchCurrentUser = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+
+      console.log('👤 Fetching current user from backend');
+      
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user');
+      }
+
+      const data = await response.json();
+      console.log('✅ User data fetched:', data);
+
       const userData = {
-        id: 'google-' + Date.now(),
-        name: googleResponse.name || 'Google User',
-        email: googleResponse.email || 'user@gmail.com',
-        role: 'sam',
-        provider: 'google',
+        id: data.user?.id || data.id,
+        name: data.user?.name || data.name,
+        email: data.user?.email || data.email,
+        role: data.user?.role || data.role || 'sam',
       };
-      
+
       setUser(userData);
       localStorage.setItem('userData', JSON.stringify(userData));
-      localStorage.setItem('authToken', 'mock-google-token-' + Date.now());
-      
-      return { success: true, user: userData };
     } catch (error) {
-      return { success: false, error: error.message || 'Google login failed' };
+      console.error('❌ Failed to fetch user:', error);
+      // Clear invalid token
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
     }
   };
 
   const register = async (userData) => {
     try {
-      // Mock registration until backend is ready
-      // const response = await apiRegister(userData);
+      console.log('📝 Attempting registration with:', { 
+        name: userData.name, 
+        email: userData.email 
+      });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await apiRegister(userData);
       
-      // Mock successful registration
+      console.log('✅ Registration successful! Response:', response);
+      
       const user = {
-        id: 'user-' + Date.now(),
-        name: userData.name,
-        email: userData.email,
-        role: 'sam',
+        id: response.user?.id || response.id,
+        name: response.user?.name || userData.name,
+        email: response.user?.email || userData.email,
+        role: response.user?.role || 'sam',
       };
       
-      // Store mock token
-      localStorage.setItem('authToken', 'mock-token-' + Date.now());
+      console.log('👤 New user data stored:', user);
       
       setUser(user);
       localStorage.setItem('userData', JSON.stringify(user));
       
       return { success: true, user };
     } catch (error) {
+      console.error('❌ Registration failed:', error);
       return { success: false, error: error.message || 'Registration failed' };
     }
   };
@@ -117,9 +146,10 @@ export function AuthProvider({ children }) {
     user,
     loading,
     login,
-    loginWithGoogle,
     register,
     logout,
+    handleOAuthCallback,
+    fetchCurrentUser,
     isAuthenticated: !!user,
   };
 

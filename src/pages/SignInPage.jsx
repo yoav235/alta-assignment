@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
 import { validateEmail } from '../utils/helpers';
+import GoogleAuthButton from '../components/auth/GoogleAuthButton';
 import './SignInPage.css';
 
 function SignInPage() {
   const navigate = useNavigate();
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -111,33 +110,6 @@ function SignInPage() {
     setIsSubmitting(false);
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      // Decode the JWT token to get user info
-      const decoded = jwtDecode(credentialResponse.credential);
-      
-      const googleData = {
-        name: decoded.name,
-        email: decoded.email,
-        picture: decoded.picture,
-        credential: credentialResponse.credential,
-      };
-
-      const result = await loginWithGoogle(googleData);
-
-      if (result.success) {
-        navigate('/dashboard');
-      } else {
-        setGeneralError(result.error);
-      }
-    } catch (error) {
-      setGeneralError('Failed to process Google login. Please try again.');
-    }
-  };
-
-  const handleGoogleError = () => {
-    setGeneralError('Google sign-in was cancelled or failed. Please try again.');
-  };
 
   return (
     <div className="signin-page">
@@ -156,15 +128,7 @@ function SignInPage() {
 
           {/* Google Sign In Button */}
           <div className="google-signin-wrapper">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              useOneTap
-              theme="outline"
-              size="large"
-              text="signin_with"
-              width="100%"
-            />
+            <GoogleAuthButton text="Sign in with Google" />
           </div>
 
           <div className="divider">

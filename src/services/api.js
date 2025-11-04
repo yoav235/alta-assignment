@@ -1,6 +1,8 @@
 // API service for backend communication
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+console.log('🌐 API Base URL configured:', API_BASE_URL);
+
 // Helper function for making API requests
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -19,9 +21,22 @@ async function apiRequest(endpoint, options = {}) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
 
+  console.log('📡 API Request:', {
+    method: config.method || 'GET',
+    url,
+    headers: config.headers,
+    hasBody: !!config.body
+  });
+
   try {
     const response = await fetch(url, config);
     const data = await response.json();
+
+    console.log('📥 API Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      data
+    });
 
     if (!response.ok) {
       throw new Error(data.message || `API Error: ${response.status}`);
@@ -29,7 +44,7 @@ async function apiRequest(endpoint, options = {}) {
 
     return data;
   } catch (error) {
-    console.error('API Request Error:', error);
+    console.error('❌ API Request Error:', error);
     throw error;
   }
 }
@@ -78,12 +93,15 @@ export async function getSAMs() {
 
 // ===== Authentication API =====
 export async function login(credentials) {
+  console.log('🔑 Calling login API with:', { email: credentials.email });
+  
   const data = await apiRequest('/auth/login', {
     method: 'POST',
     body: JSON.stringify(credentials),
   });
   
   if (data.token) {
+    console.log('🎫 Auth token received and stored');
     localStorage.setItem('authToken', data.token);
   }
   
@@ -91,12 +109,18 @@ export async function login(credentials) {
 }
 
 export async function register(userData) {
+  console.log('📋 Calling register API with:', { 
+    name: userData.name, 
+    email: userData.email 
+  });
+  
   const data = await apiRequest('/auth/register', {
     method: 'POST',
     body: JSON.stringify(userData),
   });
   
   if (data.token) {
+    console.log('🎫 Auth token received and stored');
     localStorage.setItem('authToken', data.token);
   }
   

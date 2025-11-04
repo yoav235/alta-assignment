@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
 import { useAuth } from '../contexts/AuthContext';
 import { validateEmail } from '../utils/helpers';
+import GoogleAuthButton from '../components/auth/GoogleAuthButton';
 import './SignUpPage.css';
 
 function SignUpPage() {
   const navigate = useNavigate();
-  const { register, loginWithGoogle } = useAuth();
+  const { register } = useAuth();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -137,33 +136,6 @@ function SignUpPage() {
     setIsSubmitting(false);
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      // Decode the JWT token to get user info
-      const decoded = jwtDecode(credentialResponse.credential);
-      
-      const googleData = {
-        name: decoded.name,
-        email: decoded.email,
-        picture: decoded.picture,
-        credential: credentialResponse.credential,
-      };
-
-      const result = await loginWithGoogle(googleData);
-
-      if (result.success) {
-        navigate('/dashboard');
-      } else {
-        setGeneralError(result.error);
-      }
-    } catch (error) {
-      setGeneralError('Failed to process Google sign-up. Please try again.');
-    }
-  };
-
-  const handleGoogleError = () => {
-    setGeneralError('Google sign-up was cancelled or failed. Please try again.');
-  };
 
   return (
     <div className="signup-page">
@@ -182,14 +154,7 @@ function SignUpPage() {
 
           {/* Google Sign Up Button */}
           <div className="google-signup-wrapper">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              theme="outline"
-              size="large"
-              text="signup_with"
-              width="100%"
-            />
+            <GoogleAuthButton text="Sign up with Google" />
           </div>
 
           <div className="divider">

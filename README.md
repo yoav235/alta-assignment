@@ -24,6 +24,7 @@ A modern, responsive React application for AI-powered meeting scheduling with ro
 - ✅ Loading states and error handling
 - ✅ API integration ready
 - ✅ Token-based cancellation/rescheduling support
+- ✅ Server-side Google OAuth (no client-side secrets)
 
 ## 📦 Tech Stack
 
@@ -31,7 +32,6 @@ A modern, responsive React application for AI-powered meeting scheduling with ro
 - **React Router** - Client-side routing
 - **Vite** - Build tool and dev server
 - **date-fns** - Date formatting and manipulation
-- **@react-oauth/google** - Google Calendar integration (ready for implementation)
 
 ## 🛠️ Installation
 
@@ -48,15 +48,14 @@ npm install
 
 3. **Configure environment variables**
 
-A `.env` file has been created with the backend URL. To enable Google Sign-In, add your Google Client ID:
+Create a `.env` file in the root directory with your backend URL:
 
 ```env
-# Backend API URL (already configured)
+# Backend API URL
 VITE_API_URL=https://shift-manager-backend-y3kz.onrender.com/api
-
-# Google OAuth Client ID (add your Client ID here)
-VITE_GOOGLE_CLIENT_ID=your-google-client-id-here.apps.googleusercontent.com
 ```
+
+**Note:** Google OAuth is now handled entirely on the backend using Passport. No client-side Google Client ID is needed.
 
 4. **Start development server**
 ```bash
@@ -191,9 +190,11 @@ To connect components to the actual backend:
 **Expected API Endpoints:**
 - `GET /api/availability` → Returns: `{ slots: [{ start, end }, ...] }`
 - `POST /api/meetings/book` → Accepts: `{ lead: { name, email, phone }, start, end }`
-- `POST /api/auth/login` → Accepts: `{ email, password }`
-- `POST /api/auth/register` → Accepts: `{ name, email, password }`
-- `POST /api/auth/google` → Accepts: `{ credential }` (Google JWT token)
+- `POST /api/auth/login` → Accepts: `{ email, password }` → Returns: `{ token, user }`
+- `POST /api/auth/register` → Accepts: `{ name, email, password }` → Returns: `{ token, user }`
+- `GET /api/auth/me` → Returns current user data (requires Bearer token)
+- `GET /auth/google` → Initiates OAuth flow (Passport), redirects to Google
+- `GET /auth/google/callback` → OAuth callback, redirects to `/auth/callback?token={jwt}`
 
 ## 🎯 Next Steps
 
@@ -224,31 +225,20 @@ According to the implementation plan, the following features are pending:
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `VITE_API_URL` | Backend API base URL | Yes | `http://localhost:5000/api` |
-| `VITE_GOOGLE_CLIENT_ID` | Google OAuth Client ID | Yes (for Google Sign-In) | `xxx.apps.googleusercontent.com` |
+| `VITE_API_URL` | Backend API base URL | Yes | `https://shift-manager-backend-y3kz.onrender.com/api` |
 
-### Setting Up Google OAuth
+### Google OAuth (Server-Side)
 
-To enable Google Sign-In:
+Google authentication is handled entirely on the backend using **Passport.js** (passport-google-oauth20). The frontend simply redirects users to the backend OAuth endpoint.
 
-1. **Go to [Google Cloud Console](https://console.cloud.google.com/)**
-2. **Create a new project** or select an existing one
-3. **Enable Google+ API**:
-   - Go to "APIs & Services" > "Library"
-   - Search for "Google+ API" and enable it
-4. **Create OAuth credentials**:
-   - Go to "APIs & Services" > "Credentials"
-   - Click "Create Credentials" > "OAuth client ID"
-   - Select "Web application"
-   - Add authorized JavaScript origins:
-     - `http://localhost:5173` (for development)
-     - Your production domain (e.g., `https://yourdomain.com`)
-   - Add authorized redirect URIs (same as above)
-5. **Copy the Client ID** and add it to your `.env` file:
-   ```
-   VITE_GOOGLE_CLIENT_ID=your-client-id-here.apps.googleusercontent.com
-   ```
-6. **Restart the dev server** after adding the environment variable
+**Frontend Flow:**
+1. User clicks "Sign in with Google" button
+2. Frontend redirects to: `{backend}/auth/google`
+3. Backend handles OAuth with Google
+4. Backend redirects back to: `{frontend}/auth/callback?token={jwt}`
+5. Frontend stores token and fetches user data from `/api/auth/me`
+
+**No client-side Google configuration needed!** All OAuth secrets are securely stored on the backend.
 
 ## 📱 Responsive Design
 
