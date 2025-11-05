@@ -6,7 +6,6 @@ A modern, responsive React application for AI-powered meeting scheduling with ro
 
 ### Public Booking Flow
 - **Landing Page**: Professional landing page with business overview and CTA
-- **Time Slot Selection**: Interactive calendar interface to choose available meeting times
 - **Lead Information Form**: Validated form for capturing lead details (name, email, phone)
 - **Booking Confirmation**: Success screen with meeting details and cancellation token
 - **Phone Booking**: Display phone number for voice agent booking option
