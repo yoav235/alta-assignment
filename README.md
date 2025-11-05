@@ -6,16 +6,15 @@ A modern, responsive React application for AI-powered meeting scheduling with ro
 
 ### Public Booking Flow
 - **Landing Page**: Professional landing page with business overview and CTA
-- **Time Slot Selection**: Interactive calendar interface to choose available meeting times
-- **Lead Information Form**: Validated form for capturing lead details (name, email, phone)
-- **Booking Confirmation**: Success screen with meeting details and cancellation token
 - **Phone Booking**: Display phone number for voice agent booking option
 
-### SAM Dashboard (Coming Soon)
-- Google Calendar integration for weekly schedule view
-- Analytics dashboard with KPIs (booking conversion, no-show rates, etc.)
-- Potential leads list with meeting status
-- Manual booking system for SAMs
+### 📊 SAM Dashboard
+- **Weekly Calendar View**: Interactive calendar showing all scheduled meetings
+- **Multiple View Modes**: Day, Week, and Month views
+- **Meeting Details Modal**: Double-click meetings to view full client information
+- **Meeting Management**: View all meetings with status, client details, and notes
+- **Real-time Updates**: Fetches meetings from backend API
+- **Meeting Summary**: Quick stats (total, confirmed, today's meetings)
 
 ### Features Implemented
 - ✅ Responsive design for mobile, tablet, and desktop
@@ -52,8 +51,7 @@ Create a `.env` file in the root directory with your backend URL:
 
 ```env
 # Backend API URL
-VITE_API_URL=https://shift-manager-backend-y3kz.onrender.com/api
-```
+VITE_API_URL=https://alta-assignment-backend.onrender.com/api
 
 **Note:** Google OAuth is now handled entirely on the backend using Passport. No client-side Google Client ID is needed.
 
@@ -92,24 +90,154 @@ src/
 └── main.jsx                    # Entry point
 ```
 
-## 🔌 API Integration
+## 🔌 Backend Integration
 
-The app integrates with a separate backend service. Configure the backend URL via the `VITE_API_URL` environment variable.
+### Backend Service
 
-### API Endpoints Used
+The frontend integrates with a **complete, production-ready backend service** that handles all business logic, authentication, database operations, and API endpoints. The backend is built as a separate project and is fully functional.
 
-- `GET /api/availability` - Fetch available time slots
-- `POST /api/meetings/book` - Book a new meeting
-- `POST /api/meetings/cancel` - Cancel a meeting with token
-- `GET /api/meetings` - List SAM's meetings (dashboard)
-- `POST /api/auth/login` - SAM authentication
-- `POST /api/auth/register` - SAM registration
+**Note:** The backend codebase is maintained in a separate repository and will be shown on demand. The backend is fully operational and provides all required functionality for the AI Meeting Scheduler application.
+
+### Backend Configuration
+
+Configure the backend URL via the `VITE_API_URL` environment variable:
+
+```env
+VITE_API_URL=https://alta-assignment-backend.onrender.com/api
+```
+
+### API Endpoints Used by Frontend
+
+The frontend communicates with the backend through the following REST API endpoints:
+
+#### 🔐 Authentication Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/api/auth/login` | SAM email/password authentication | No |
+| `POST` | `/api/auth/register` | Create new SAM account | No |
+| `GET` | `/api/auth/me` | Get current authenticated user data | Yes (Bearer) |
+| `GET` | `/auth/google` | Initiate Google OAuth flow (redirect) | No |
+| `GET` | `/auth/google/callback` | OAuth callback handler (backend redirects to `/auth/callback?token={jwt}`) | No |
+
+**Request/Response Examples:**
+
+```javascript
+// POST /api/auth/login
+// Request: { email: "sam@example.com", password: "password123" }
+// Response: { token: "jwt_token_here", user: { id, name, email, role } }
+
+// GET /api/auth/me
+// Headers: { Authorization: "Bearer jwt_token_here" }
+// Response: { user: { id, name, email, role } }
+```
+
+#### 📅 Meeting Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/api/meetings/my-meetings` | Get all meetings for authenticated SAM | Yes (Bearer) |
+| `POST` | `/api/meetings/book` | Book a new meeting | No |
+| `POST` | `/api/meetings/cancel` | Cancel a meeting using cancellation token | No |
+| `GET` | `/api/meetings/{token}` | Get meeting details by cancellation token | No |
+
+**Request/Response Examples:**
+
+```javascript
+// POST /api/meetings/book
+// Request: {
+//   lead: { name: "John Doe", email: "john@example.com", phone: "+1234567890" },
+//   start: "2024-01-15T10:00:00Z",
+//   end: "2024-01-15T11:00:00Z"
+// }
+// Response: { 
+//   meeting: { id, lead, start, end, samId, status },
+//   cancelToken: "token_string"
+// }
+
+// GET /api/meetings/my-meetings
+// Headers: { Authorization: "Bearer jwt_token_here" }
+// Response: { 
+//   data: { 
+//     meetings: [
+//       { id, leadName, leadEmail, leadPhone, start, end, status, notes }
+//     ]
+//   }
+// }
+```
+
+#### ⏰ Availability Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/api/availability` | Get available time slots for booking | No |
+
+**Request/Response Example:**
+
+```javascript
+// GET /api/availability?startDate=2024-01-15&endDate=2024-01-22
+// Response: {
+//   slots: [
+//     { start: "2024-01-15T09:00:00Z", end: "2024-01-15T10:00:00Z" },
+//     { start: "2024-01-15T10:00:00Z", end: "2024-01-15T11:00:00Z" }
+//   ]
+// }
+```
+
+#### 👥 SAM Management Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/api/sams` | Get list of all SAMs | Yes (Bearer) |
+| `POST` | `/api/sams` | Create or update SAM configuration | Yes (Bearer) |
+
+### Authentication Flow
+
+**Google OAuth Flow:**
+1. User clicks "Sign in with Google" button
+2. Frontend redirects to: `{BACKEND_URL}/auth/google`
+3. Backend handles OAuth with Google (Passport.js)
+4. Backend redirects to: `{FRONTEND_URL}/auth/callback?token={jwt}`
+5. Frontend stores token in localStorage
+6. Frontend fetches user data from `/api/auth/me`
+7. User redirected to dashboard
+
+**Traditional Login Flow:**
+1. User submits email/password form
+2. Frontend posts to `/api/auth/login`
+3. Backend validates credentials and returns JWT token
+4. Frontend stores token in localStorage
+5. User redirected to dashboard
+
+### Backend Features
+
+The backend service includes:
+
+- ✅ **JWT Authentication** - Secure token-based authentication
+- ✅ **Google OAuth Integration** - Server-side OAuth with Passport.js
+- ✅ **Round-Robin Assignment** - Automatic meeting distribution to SAMs
+- ✅ **Database Integration** - Persistent storage for users, meetings, and SAMs
+- ✅ **Google Calendar Sync** - Integration with Google Calendar API
+- ✅ **Meeting Management** - CRUD operations for meetings
+- ✅ **Availability Calculation** - Business hours, buffers, and conflict detection
+- ✅ **CORS Configuration** - Properly configured for frontend domain
+- ✅ **Error Handling** - Comprehensive error responses
+- ✅ **Input Validation** - Request validation and sanitization
+
+### API Client Implementation
+
+The frontend uses a centralized API client (`src/services/api.js`) that:
+- Automatically injects Bearer tokens for authenticated requests
+- Handles request/response formatting
+- Provides consistent error handling
+- Logs all API requests for debugging
+
+**Note:** The backend codebase is maintained separately and will be provided on demand for review or integration purposes.
 
 ## 🎨 Pages & Components
 
 ### 1. Landing Page (`/`)
 - Hero section with business summary
-- "Schedule a Meeting" CTA button
 - Phone number for voice booking (1-800-SCHEDULE)
 - Features showcase
 - Statistics section
@@ -129,11 +257,26 @@ The app integrates with a separate backend service. Configure the backend URL vi
   - Cancellation token link
   - Actions to book another or return home
 
-### 3. Dashboard (Coming Soon)
-- Google Calendar weekly view
-- Analytics and KPIs
-- Leads management
-- Manual booking
+### 3. Dashboard (`/dashboard`)
+- **Weekly Calendar Component**: 
+  - Day view - detailed hourly breakdown (8 AM - 6 PM)
+  - Week view - 7-day overview with all meetings
+  - Month view - full month with meeting count per day
+  - Double-click day headers to switch between views
+- **Meeting Cards**: 
+  - Color-coded cards with client details
+  - Shows name, email, phone, time, and status
+  - Hover effects and smooth animations
+- **Meeting Details Modal**: 
+  - Double-click any meeting to view full information
+  - Displays client name, email, phone, date, time, status, and notes
+  - Professional modal design with close options
+- **Navigation Controls**: 
+  - Previous/Next/Today buttons
+  - View toggle (Day/Week/Month)
+- **Meeting Summary**: 
+  - Quick stats showing total meetings, confirmed meetings, and today's count
+- **Protected Route**: Requires authentication, redirects to sign-in if not logged in
 
 ## 🚧 Development
 
@@ -163,69 +306,30 @@ The `api.js` service provides:
 - Error handling
 - Request/response formatting
 
-### Backend Status
+### Backend Integration Status
 
-✅ **Backend URL Configured**: `https://shift-manager-backend-y3kz.onrender.com/api`
+✅ **Backend is Complete and Operational**: The frontend is fully connected to a production-ready backend service.
 
-⚠️ **Current Mode - Mock Data:**
-- **Booking component**: Uses mock calendar data (can be switched to real API)
-- **Authentication**: Uses mock login/registration (can be switched to real API)
-- **Calendar**: Mock availability for next 14 business days (9 AM - 5 PM)
+✅ **All API Endpoints Implemented**: All required endpoints are functional and documented in the [Backend Integration](#-backend-integration) section above.
 
-### Switching to Real Backend
+✅ **No Mock Data**: The application uses real backend API calls for all functionality including:
+- Authentication (Google OAuth and email/password)
+- Meeting management (booking, viewing, cancellation)
+- User data fetching
+- Availability checking
 
-To connect components to the actual backend:
+**Backend Configuration:**
+- Set `VITE_API_URL` in `.env` file to point to your backend server
+- Default: `http://localhost:5000/api` for local development
+- Production: Set to your deployed backend URL
 
-**For Booking:**
-1. Open `src/pages/BookingPage.jsx`
-2. Uncomment the real API import: `import { bookMeeting } from '../services/api';`
-3. Replace the mock booking code with the commented API call
-4. Update `Calendar.jsx` to fetch from `GET /api/availability` instead of mock data
-
-**For Authentication:**
-1. Open `src/contexts/AuthContext.jsx`
-2. Uncomment the API calls in `login` and `register` functions
-3. Remove or comment out the mock implementations
-
-**Expected API Endpoints:**
-- `GET /api/availability` → Returns: `{ slots: [{ start, end }, ...] }`
-- `POST /api/meetings/book` → Accepts: `{ lead: { name, email, phone }, start, end }`
-- `POST /api/auth/login` → Accepts: `{ email, password }` → Returns: `{ token, user }`
-- `POST /api/auth/register` → Accepts: `{ name, email, password }` → Returns: `{ token, user }`
-- `GET /api/auth/me` → Returns current user data (requires Bearer token)
-- `GET /auth/google` → Initiates OAuth flow (Passport), redirects to Google
-- `GET /auth/google/callback` → OAuth callback, redirects to `/auth/callback?token={jwt}`
-
-## 🎯 Next Steps
-
-According to the implementation plan, the following features are pending:
-
-1. **Authentication Pages**
-   - Sign In page for SAMs
-   - Sign Up page for SAMs
-   - Auth context for state management
-
-2. **SAM Dashboard**
-   - Google Calendar OAuth integration
-   - Weekly calendar view component
-   - Analytics panel with KPIs
-   - Potential leads list
-   - Manual booking system
-
-3. **Cancel/Reschedule Page**
-   - Token-based meeting cancellation
-   - Reschedule functionality
-
-4. **Google Calendar Integration**
-   - OAuth 2.0 flow
-   - Calendar API service
-   - Real-time sync with backend
+**Note:** The backend codebase is maintained in a separate repository and will be provided on demand for review or integration purposes.
 
 ## 🌐 Environment Variables
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `VITE_API_URL` | Backend API base URL | Yes | `https://shift-manager-backend-y3kz.onrender.com/api` |
+| `VITE_API_URL` | Backend API base URL | Yes | `https://alta-assignment-backend.onrender.com/api` |
 
 ### Google OAuth (Server-Side)
 
