@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { validateEmail } from '../utils/helpers';
 import GoogleAuthButton from '../components/auth/GoogleAuthButton';
+import ErrorModal from '../components/common/ErrorModal';
 import './SignInPage.css';
 
 function SignInPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { login } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -17,7 +19,19 @@ function SignInPage() {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [generalError, setGeneralError] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Check for OAuth errors from URL params
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setErrorMessage(decodeURIComponent(errorParam));
+      setShowErrorModal(true);
+      // Clean up the URL
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,8 +47,9 @@ function SignInPage() {
       }));
     }
     
-    if (generalError) {
-      setGeneralError('');
+    if (showErrorModal) {
+      setShowErrorModal(false);
+      setErrorMessage('');
     }
   };
 
@@ -97,14 +112,16 @@ function SignInPage() {
     }
 
     setIsSubmitting(true);
-    setGeneralError('');
+    setShowErrorModal(false);
+    setErrorMessage('');
 
     const result = await login(formData);
 
     if (result.success) {
       navigate('/dashboard');
     } else {
-      setGeneralError(result.error);
+      setErrorMessage(result.error || 'Sign in failed. Please check your credentials and try again.');
+      setShowErrorModal(true);
     }
 
     setIsSubmitting(false);
@@ -119,12 +136,6 @@ function SignInPage() {
             <h1>Welcome Back</h1>
             <p>Sign in to access your SAM dashboard</p>
           </div>
-
-          {generalError && (
-            <div className="error-banner">
-              <strong>⚠️</strong> {generalError}
-            </div>
-          )}
 
           {/* Google Sign In Button */}
           <div className="google-signin-wrapper">
@@ -241,6 +252,15 @@ function SignInPage() {
           </ul>
         </div>
       </div>
+
+      <ErrorModal 
+        isOpen={showErrorModal}
+        message={errorMessage}
+        onClose={() => {
+          setShowErrorModal(false);
+          setErrorMessage('');
+        }}
+      />
     </div>
   );
 }

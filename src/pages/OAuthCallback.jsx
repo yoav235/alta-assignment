@@ -1,12 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 function OAuthCallback() {
   const navigate = useNavigate();
   const { handleOAuthCallback } = useAuth();
+  const hasProcessedToken = useRef(false);
 
   useEffect(() => {
+    // Prevent double-execution in React 18 Strict Mode
+    if (hasProcessedToken.current) {
+      console.log('⏭️ Token already processed, skipping...');
+      return;
+    }
+
     // Get token from URL query parameter
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
@@ -16,12 +23,16 @@ function OAuthCallback() {
 
     if (error) {
       console.error('❌ OAuth error:', error);
+      hasProcessedToken.current = true;
       // Redirect to sign-in with error message
       navigate('/signin?error=' + encodeURIComponent(error));
       return;
     }
 
     if (token) {
+      // Mark as processed BEFORE doing anything else
+      hasProcessedToken.current = true;
+      
       // Process the token
       handleOAuthCallback(token);
       
@@ -30,6 +41,7 @@ function OAuthCallback() {
       navigate('/dashboard');
     } else {
       console.error('❌ No token received from OAuth');
+      hasProcessedToken.current = true;
       navigate('/signin?error=No token received');
     }
   }, [navigate, handleOAuthCallback]);
