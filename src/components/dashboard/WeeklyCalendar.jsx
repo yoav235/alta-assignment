@@ -6,6 +6,7 @@ import './WeeklyCalendar.css';
 
 function WeeklyCalendar() {
   const [view, setView] = useState('week'); // 'day', 'week', 'month'
+  const [previousView, setPreviousView] = useState('month'); // Track previous view for return navigation
   const [currentDate, setCurrentDate] = useState(new Date());
   const [allMeetings, setAllMeetings] = useState([]); // Store all meetings
   const [loading, setLoading] = useState(true);
@@ -70,7 +71,16 @@ function WeeklyCalendar() {
       case 'month':
         start = startOfMonth(currentDate);
         end = endOfMonth(currentDate);
-        // Get all days in the month
+        
+        // Get the day of week for the first day (0 = Sunday)
+        const firstDayOfWeek = start.getDay();
+        
+        // Add empty cells for days before the month starts
+        for (let i = 0; i < firstDayOfWeek; i++) {
+          dates.push(null); // null represents empty cell
+        }
+        
+        // Add all days in the month
         let day = start;
         while (day <= end) {
           dates.push(day);
@@ -166,8 +176,14 @@ function WeeklyCalendar() {
 
   const handleDayDoubleClick = (day) => {
     console.log('📅 Double-clicked day:', format(day, 'yyyy-MM-dd'));
+    setPreviousView(view); // Remember current view before switching
     setCurrentDate(day);
     setView('day');
+  };
+
+  const handleDayViewDoubleClick = () => {
+    console.log('📅 Returning to previous view:', previousView);
+    setView(previousView);
   };
 
   // Get the display label for current view
@@ -262,19 +278,28 @@ function WeeklyCalendar() {
         <div className="calendar-controls">
           <div className="view-toggle">
             <button 
-              onClick={() => setView('day')} 
+              onClick={() => {
+                if (view !== 'day') setPreviousView(view);
+                setView('day');
+              }} 
               className={`view-btn ${view === 'day' ? 'active' : ''}`}
             >
               Day
             </button>
             <button 
-              onClick={() => setView('week')} 
+              onClick={() => {
+                if (view !== 'week') setPreviousView(view);
+                setView('week');
+              }} 
               className={`view-btn ${view === 'week' ? 'active' : ''}`}
             >
               Week
             </button>
             <button 
-              onClick={() => setView('month')} 
+              onClick={() => {
+                if (view !== 'month') setPreviousView(view);
+                setView('month');
+              }} 
               className={`view-btn ${view === 'month' ? 'active' : ''}`}
             >
               Month
@@ -296,6 +321,11 @@ function WeeklyCalendar() {
         
         <div className="week-range">
           {getViewLabel()}
+          {view === 'day' && (
+            <div className="day-view-hint">
+              <span className="hint-icon">💡</span> Double-click the day header to return to {previousView} view
+            </div>
+          )}
         </div>
       </div>
 
@@ -316,7 +346,15 @@ function WeeklyCalendar() {
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <div key={day} className="month-day-header">{day}</div>
               ))}
-              {displayDates.map(day => {
+              {displayDates.map((day, index) => {
+                // Handle empty cells (days before month starts)
+                if (day === null) {
+                  return (
+                    <div key={`empty-${index}`} className="month-day-cell empty">
+                    </div>
+                  );
+                }
+                
                 const dayMeetings = visibleMeetings.filter(meeting => {
                   try {
                     const meetingDate = parseISO(meeting.start);
@@ -363,9 +401,15 @@ function WeeklyCalendar() {
             <div key={day.toISOString()} className="day-column">
               <div 
                 className={`day-header-cell ${isToday(day) ? 'today' : ''}`}
-                onDoubleClick={() => view === 'week' && handleDayDoubleClick(day)}
-                title={view === 'week' ? 'Double-click to view day' : ''}
-                style={{ cursor: view === 'week' ? 'pointer' : 'default' }}
+                onDoubleClick={() => {
+                  if (view === 'week') {
+                    handleDayDoubleClick(day);
+                  } else if (view === 'day') {
+                    handleDayViewDoubleClick();
+                  }
+                }}
+                title={view === 'week' ? 'Double-click to view day' : view === 'day' ? `Double-click to return to ${previousView} view` : ''}
+                style={{ cursor: view === 'day' || view === 'week' ? 'pointer' : 'default' }}
               >
                 <div className="day-name">{format(day, 'EEE')}</div>
                 <div className="day-date">{format(day, 'd')}</div>
