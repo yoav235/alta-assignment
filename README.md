@@ -51,7 +51,7 @@ Create a `.env` file in the root directory with your backend URL:
 
 ```env
 # Backend API URL
-VITE_API_URL=https://alta-assignment-backend.onrender.com/api
+VITE_API_URL=http://localhost:5000/api
 
 **Note:** Google OAuth is now handled entirely on the backend using Passport. No client-side Google Client ID is needed.
 
@@ -103,7 +103,7 @@ The frontend integrates with a **complete, production-ready backend service** th
 Configure the backend URL via the `VITE_API_URL` environment variable:
 
 ```env
-VITE_API_URL=https://alta-assignment-backend.onrender.com/api
+VITE_API_URL=http://localhost:5000/api
 ```
 
 ### API Endpoints Used by Frontend
@@ -329,7 +329,7 @@ The `api.js` service provides:
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `VITE_API_URL` | Backend API base URL | Yes | `https://alta-assignment-backend.onrender.com/api` |
+| `VITE_API_URL` | Backend API base URL | Yes | `http://localhost:5000/api` |
 
 ### Google OAuth (Server-Side)
 
