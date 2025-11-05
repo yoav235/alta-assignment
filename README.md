@@ -355,6 +355,3 @@ The application is fully responsive with breakpoints:
 
 This is a home assignment project. For questions or issues, please contact the project maintainer.
 
-## 📄 License
-
-Private project for Alta home assignment.
