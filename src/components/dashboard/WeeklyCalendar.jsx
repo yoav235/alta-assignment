@@ -11,6 +11,7 @@ function WeeklyCalendar() {
   const [allMeetings, setAllMeetings] = useState([]); // Store all meetings
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedMeeting, setSelectedMeeting] = useState(null); // For meeting details modal
 
   useEffect(() => {
     // Fetch all meetings once on mount
@@ -439,6 +440,8 @@ function WeeklyCalendar() {
                           key={meeting.id} 
                           className="meeting-card"
                           style={{ height: `${cardHeight}px` }}
+                          onDoubleClick={() => setSelectedMeeting(meeting)}
+                          title="Double-click to view details"
                         >
                           <div className="meeting-time">
                             {formatTime(meeting.start)} - {formatTime(meeting.end)}
@@ -504,6 +507,94 @@ function WeeklyCalendar() {
           <div className="summary-stat">
             <span className="stat-number">{allMeetings.length}</span>
             <span className="stat-label">Total</span>
+          </div>
+        </div>
+      )}
+
+      {/* Meeting Details Modal */}
+      {selectedMeeting && (
+        <div className="meeting-modal-overlay" onClick={() => setSelectedMeeting(null)}>
+          <div className="meeting-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Meeting Details</h2>
+              <button className="modal-close" onClick={() => setSelectedMeeting(null)}>
+                ✕
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="modal-section">
+                <div className="modal-icon">👤</div>
+                <div className="modal-info">
+                  <div className="modal-label">Client Name</div>
+                  <div className="modal-value">{selectedMeeting.leadName || 'Not provided'}</div>
+                </div>
+              </div>
+
+              <div className="modal-section">
+                <div className="modal-icon">📧</div>
+                <div className="modal-info">
+                  <div className="modal-label">Email</div>
+                  <div className="modal-value">{selectedMeeting.leadEmail || 'Not provided'}</div>
+                </div>
+              </div>
+
+              {selectedMeeting.leadPhone && (
+                <div className="modal-section">
+                  <div className="modal-icon">📱</div>
+                  <div className="modal-info">
+                    <div className="modal-label">Phone Number</div>
+                    <div className="modal-value">{selectedMeeting.leadPhone}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="modal-section">
+                <div className="modal-icon">📅</div>
+                <div className="modal-info">
+                  <div className="modal-label">Date</div>
+                  <div className="modal-value">
+                    {format(parseISO(selectedMeeting.start), 'EEEE, MMMM d, yyyy')}
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-section">
+                <div className="modal-icon">🕒</div>
+                <div className="modal-info">
+                  <div className="modal-label">Time</div>
+                  <div className="modal-value">
+                    {formatTime(selectedMeeting.start)} - {formatTime(selectedMeeting.end)}
+                  </div>
+                </div>
+              </div>
+
+              {selectedMeeting.notes && (
+                <div className="modal-section">
+                  <div className="modal-icon">📝</div>
+                  <div className="modal-info">
+                    <div className="modal-label">Notes</div>
+                    <div className="modal-value">{selectedMeeting.notes}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="modal-section">
+                <div className="modal-icon">📊</div>
+                <div className="modal-info">
+                  <div className="modal-label">Status</div>
+                  <div className={`modal-status status-${selectedMeeting.status || 'pending'}`}>
+                    {selectedMeeting.status || 'pending'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="modal-button" onClick={() => setSelectedMeeting(null)}>
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

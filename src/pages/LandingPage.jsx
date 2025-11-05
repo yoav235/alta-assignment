@@ -16,10 +16,6 @@ function LandingPage() {
     }
   }, [isAuthenticated, loading, navigate]);
 
-  const handleScheduleMeeting = () => {
-    navigate('/book');
-  };
-
   // Show loading state while checking authentication
   if (loading) {
     return (
@@ -59,29 +55,11 @@ function LandingPage() {
               coordination. Never miss an opportunity again.
             </p>
             <div className="hero-cta">
-              <button className="cta-button primary" onClick={handleScheduleMeeting}>
-                Schedule a Meeting
-              </button>
               <div className="phone-cta">
                 <svg className="phone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                 </svg>
-                <span>Or call us at <strong>1-800-SCHEDULE</strong></span>
-              </div>
-            </div>
-          </div>
-          <div className="hero-image">
-            <div className="calendar-illustration">
-              <div className="calendar-card">
-                <div className="calendar-header">Your Schedule</div>
-                <div className="calendar-grid">
-                  <div className="calendar-item booked"></div>
-                  <div className="calendar-item"></div>
-                  <div className="calendar-item booked"></div>
-                  <div className="calendar-item"></div>
-                  <div className="calendar-item booked"></div>
-                  <div className="calendar-item"></div>
-                </div>
+                <span>Call our AI voice agent at <strong>+1 (917) 717-5443</strong></span>
               </div>
             </div>
           </div>
@@ -153,10 +131,7 @@ function LandingPage() {
       <section className="cta-section">
         <div className="cta-container">
           <h2>Ready to Optimize Your Meetings?</h2>
-          <p>Join hundreds of sales teams using AI to manage their schedules efficiently</p>
-          <button className="cta-button secondary" onClick={handleScheduleMeeting}>
-            Get Started Today
-          </button>
+          <p>Call our AI voice agent at <strong>+1 (917) 717-5443</strong> to schedule your meeting today</p>
         </div>
       </section>
     </div>
