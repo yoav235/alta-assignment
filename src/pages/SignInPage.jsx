@@ -9,7 +9,7 @@ import './SignInPage.css';
 function SignInPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { login } = useAuth();
+  const { login, isAuthenticated, loading } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -21,6 +21,14 @@ function SignInPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      console.log('✅ User already authenticated, redirecting to dashboard...');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
 
   // Check for OAuth errors from URL params
   useEffect(() => {

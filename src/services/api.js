@@ -72,7 +72,8 @@ export async function cancelMeeting(token) {
 }
 
 export async function getMeetings() {
-  return apiRequest('/meetings', { method: 'GET' });
+  // Get all meetings for the authenticated SAM
+  return apiRequest('/meetings/my-meetings', { method: 'GET' });
 }
 
 export async function getMeetingByToken(token) {

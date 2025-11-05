@@ -6,6 +6,7 @@ import BookingPage from './pages/BookingPage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import OAuthCallback from './pages/OAuthCallback';
+import Dashboard from './pages/Dashboard';
 import './App.css';
 
 function App() {
@@ -21,8 +22,7 @@ function App() {
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/auth/callback" element={<OAuthCallback />} />
-              {/* Placeholder routes - to be implemented */}
-              <Route path="/dashboard" element={<div style={{padding: '2rem', textAlign: 'center'}}><h2>Dashboard - Coming Soon</h2></div>} />
+              <Route path="/dashboard" element={<Dashboard />} />
             </Routes>
           </main>
         </div>

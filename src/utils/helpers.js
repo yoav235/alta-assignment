@@ -10,7 +10,13 @@ export function formatDate(date, formatString = 'MMM dd, yyyy') {
 export function formatTime(date, formatString = 'h:mm a') {
   if (!date) return '';
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return format(dateObj, formatString);
+  // Format using UTC time to match how we're displaying on calendar
+  const utcHours = dateObj.getUTCHours();
+  const utcMinutes = dateObj.getUTCMinutes();
+  const isPM = utcHours >= 12;
+  const displayHours = utcHours % 12 || 12;
+  const minutesStr = utcMinutes.toString().padStart(2, '0');
+  return `${displayHours}:${minutesStr} ${isPM ? 'PM' : 'AM'}`;
 }
 
 export function formatDateTime(date) {
